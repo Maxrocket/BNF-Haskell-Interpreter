@@ -9,7 +9,7 @@ import java.util.HashMap;
 public class BNF {
 
     private HashMap<String, String[][]> bnf;
-    
+
     public BNF(String filepath) {
         bnf = new HashMap<>();
         try {
@@ -27,6 +27,40 @@ public class BNF {
                 }
                 //put in hashmap
                 bnf.put(line.split("::=")[0].trim(), rules);
+            }
+        } catch (FileNotFoundException f) {
+            System.out.println(f.getMessage() + " - file not found");
+        } catch (IOException i) {
+            System.out.println(i.getMessage() + " - io");
+        }
+    }
+
+    public void fixSymbols(String filepath) {
+        HashMap<String, String> symbols = new HashMap<>();
+        try {
+            //reads in symbols
+            BufferedReader br = new BufferedReader(new FileReader(filepath));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String name = line.split(" ")[0];
+                String symbol = line.split(" ")[1];
+                symbols.put(name, symbol);
+            }
+            //fixes bnf
+            for (String key : bnf.keySet()) {
+                //get original rules
+                String[][] original = bnf.get(key);
+                bnf.remove(key, original);
+                for (int i = 0; i < original.length; i++) {
+                    for (int j = 0; j < original[i].length; j++) {
+                        //replace any symbols
+                        if (symbols.containsKey(original[i][j])) {
+                            original[i][j] = symbols.get(original[i][j]);
+                        }
+                    }
+                }
+                //put new rules
+                bnf.put(key, original);
             }
         } catch (FileNotFoundException f) {
             System.out.println(f.getMessage() + " - file not found");
